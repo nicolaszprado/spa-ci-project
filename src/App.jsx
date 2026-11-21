@@ -308,7 +308,7 @@ export default function App() {
           <div className="hero-copy">
             <div className="hero-kicker"><span></span> O bom negócio tem história</div>
             <h1>Carro velho.<br /><span>Negócio novo.</span></h1>
-            <p>O lugar certo pra encontrar aquele clássico que ainda tem muita estrada pela frente.</p>
+            <p>O lugar certo pra encontrar aquele clássico veio que ainda tem muita estrada pela frente.</p>
             <a className="button button-primary hero-button" href="#anuncios">Explorar classificados <ArrowRight size={17} /></a>
             <div className="hero-trust"><BadgeCheck size={17} /> Bons negócios, sem enrolação.</div>
           </div>

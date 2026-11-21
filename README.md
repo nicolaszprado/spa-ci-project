@@ -30,18 +30,18 @@ O fluxo em `.github/workflows/ci.yml` é executado em commits na `main`, pull re
 ```text
 Commit ou PR
   -> checkout
-  -> setup Node.js 22
-  -> npm ci
   -> ESLint
   -> Vitest + cobertura
   -> npm audit
   -> Gitleaks
-  -> build Vite
-  -> artefato dist/
+  -> Docker build multi-stage
+  -> smoke test do container
+  -> extração de dist/ da imagem
+  -> artefato estático dist/
   -> deploy no GitHub Pages
 ```
 
-Pull requests e commits na `main` executam todas as validações. O deploy somente ocorre em push direto ou merge para `main`. Qualquer falha em lint, testes, cobertura, auditoria relevante ou secret scan impede o job de build e o deploy.
+Pull requests e commits na `main` executam todas as validações. O deploy somente ocorre em push direto ou merge para `main`. Qualquer falha em lint, testes, cobertura, auditoria relevante, secret scan ou smoke test do container impede o deploy.
 
 ## Qualidade e testes
 
@@ -61,7 +61,7 @@ Não existem credenciais no código. O projeto não usa secrets ou variáveis pa
 
 ## Artefato e publicação
 
-O artefato é a pasta `dist/`, produzida pelo Vite após todas as validações. Ela contém `index.html`, JavaScript, CSS e referências a recursos estáticos. O workflow envia `dist/` com `actions/upload-pages-artifact@v3` e publica com `actions/deploy-pages@v4`.
+O build principal é realizado pela etapa Docker. A etapa `node:22-alpine` gera `dist/` dentro da imagem; em seguida, o container Nginx serve esse conteúdo e passa pelo smoke test. Após a validação, o workflow copia `/usr/share/nginx/html` da imagem para a pasta `dist/` do runner. O artefato estático é enviado com `actions/upload-pages-artifact@v3` e publicado por `actions/deploy-pages@v4`.
 
 O valor de `VITE_BASE=/spa-ci-project/` corresponde ao caminho do projeto publicado no GitHub Pages. Após o primeiro deploy, habilite Pages em `Settings > Pages > Source: GitHub Actions`.
 
@@ -106,7 +106,7 @@ A aplicação estará em `http://localhost:8080/`. Alternativamente:
 docker compose up --build
 ```
 
-O workflow gera e valida a imagem em commits e pull requests. Em push para `main`, autentica no GHCR e publica a imagem:
+O Docker é o build principal do pipeline: ele gera o conteúdo da SPA, valida a aplicação executando o container e fornece `dist/` ao GitHub Pages. Em push para `main`, o mesmo processo autentica no GHCR e publica a imagem:
 
 ```text
 ghcr.io/nicolaszprado/spa-ci-project:main
