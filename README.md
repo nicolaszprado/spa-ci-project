@@ -64,3 +64,23 @@ Não existem credenciais no código. O projeto não usa secrets ou variáveis pa
 O artefato é a pasta `dist/`, produzida pelo Vite após todas as validações. Ela contém `index.html`, JavaScript, CSS e referências a recursos estáticos. O workflow envia `dist/` com `actions/upload-pages-artifact@v3` e publica com `actions/deploy-pages@v4`.
 
 O valor de `VITE_BASE=/spa-ci-project/` corresponde ao caminho do projeto publicado no GitHub Pages. Após o primeiro deploy, habilite Pages em `Settings > Pages > Source: GitHub Actions`.
+
+## Monitoramento
+
+O workflow `.github/workflows/monitor.yml` separa a verificação pós-deploy das validações de CI/CD:
+
+- executa automaticamente a cada 15 minutos;
+- também executa após a conclusão bem-sucedida do workflow `CI and Deploy`;
+- pode ser iniciado manualmente em `Actions > Application Health Check > Run workflow`;
+- usa até 3 tentativas com intervalo entre elas;
+- aceita somente respostas HTTP de sucesso e exige a presença do título `Rei da Catira | Classificados de carros`;
+- registra cada resultado no resumo e no log do GitHub Actions;
+- cria uma Issue apenas quando uma indisponibilidade é confirmada e ainda não existe uma Issue aberta com o mesmo assunto.
+
+O endereço monitorado é a variável opcional `MONITOR_URL`. Caso não exista, o workflow utiliza `https://nicolaszprado.github.io/spa-ci-project/`. Para alterar o endereço:
+
+1. Abra `Settings > Secrets and variables > Actions > Variables`.
+2. Clique em **New repository variable**.
+3. Configure o nome `MONITOR_URL` e a URL pública completa.
+
+Para comprovar uma execução, abra `Actions > Application Health Check`, selecione a execução mais recente e consulte o job `Health check`. Status HTTP 200 e conteúdo esperado indicam disponibilidade; falha após todas as tentativas indica indisponibilidade.
