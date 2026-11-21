@@ -84,3 +84,33 @@ O endereço monitorado é a variável opcional `MONITOR_URL`. Caso não exista, 
 3. Configure o nome `MONITOR_URL` e a URL pública completa.
 
 Para comprovar uma execução, abra `Actions > Application Health Check`, selecione a execução mais recente e consulte o job `Health check`. Status HTTP 200 e conteúdo esperado indicam disponibilidade; falha após todas as tentativas indica indisponibilidade.
+
+## Docker
+
+O bônus Docker usa uma compilação multi-stage:
+
+1. `node:22-alpine` instala as dependências e gera `dist/`.
+2. `nginx:1.27-alpine` recebe o artefato estático na porta 80.
+3. A configuração do Nginx encaminha rotas da SPA para `index.html`.
+
+Executar localmente:
+
+```powershell
+docker build --build-arg VITE_BASE=/ -t rei-da-catira .
+docker run --rm -p 8080:80 rei-da-catira
+```
+
+A aplicação estará em `http://localhost:8080/`. Alternativamente:
+
+```powershell
+docker compose up --build
+```
+
+O workflow gera e valida a imagem em commits e pull requests. Em push para `main`, autentica no GHCR e publica a imagem:
+
+```text
+ghcr.io/nicolaszprado/spa-ci-project:main
+ghcr.io/nicolaszprado/spa-ci-project:sha-<commit>
+```
+
+Não são necessários secrets externos: o pipeline utiliza `GITHUB_TOKEN` concedido pelo próprio GitHub Actions. A execução da imagem pode ser feita sem conta em Docker Hub.
